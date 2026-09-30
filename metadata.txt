@@ -1,7 +1,0 @@
-[general]
-name=AnomalyTools
-qgisMinimumVersion=3.0
-description=Compute Length/Width/Area/Ratio + raster_ran stats, and filter features with interactive dialogs.
-version=0.3
-author=Yerassyl Koshan
-email=yerassyl@archairworks.com
