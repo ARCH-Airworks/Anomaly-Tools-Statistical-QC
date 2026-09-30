@@ -1,0 +1,49 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+*.egg
+.eggs/
+.Python
+*.so
+
+# --- Virtual environments ---
+venv/
+.venv/
+env/
+ENV/
+
+# --- QGIS / Qt build artifacts ---
+# Auto-generated from .ui files by pyuic — regenerate, don't track
+*_ui.py
+ui_*.py
+# Auto-generated from .qrc by pyrcc — regenerate, don't track
+resources_rc.py
+resources.py
+*.qmproj
+
+# --- Packaging ---
+# The zipped plugin you upload to QGIS / the plugin repo — build it, don't version it
+*.zip
+build/
+dist/
+
+# --- Editors / IDEs ---
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# --- OS clutter ---
+.DS_Store
+Thumbs.db
+
+# --- Secrets / local config ---
+.env
+*.env.local
+
+# --- QGIS runtime/log noise ---
+*.qgs~
+*.qgz~
+*.log
