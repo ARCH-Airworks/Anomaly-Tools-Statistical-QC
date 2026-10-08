@@ -1,12 +1,23 @@
 import os
-from qgis.PyQt import QtWidgets, QtCore
+import processing, statistics
+
+from qgis.PyQt import (
+    QtWidgets,
+    QtCore
+)
 from qgis.PyQt.QtGui import QIcon
 from qgis.core import (
-    QgsProject, QgsVectorLayer, QgsRasterLayer, QgsField, QgsExpression,
-    QgsExpressionContext, QgsExpressionContextUtils, QgsFeatureRequest
+    QgsProject,
+    QgsVectorLayer,
+    QgsRasterLayer,
+    QgsField,
+    QgsExpression,
+    QgsExpressionContext,
+    QgsExpressionContextUtils,
+    QgsFeatureRequest
 )
 from qgis.PyQt.QtCore import QVariant
-import processing, statistics
+
 
 class AnomalyPlugin:
     def __init__(self, iface):
@@ -80,18 +91,37 @@ class PluginDialog(QtWidgets.QDialog):
         self._build_tab1()
         self._build_tab2()
 
-    def _layer_names(self, layer_type='vector'):
+    def _layer_names(
+        self, 
+        layer_type: str ='vector'
+    ) -> str:
         if layer_type == 'vector':
-            layers = [l for l in QgsProject.instance().mapLayers().values() if isinstance(l, QgsVectorLayer)]
+            layers = [
+                l for l in QgsProject.instance().mapLayers().values() 
+                if isinstance(l, QgsVectorLayer)
+            ]
+
         else:
-            layers = [l for l in QgsProject.instance().mapLayers().values() if isinstance(l, QgsRasterLayer)]
+            layers = [
+                l for l in QgsProject.instance().mapLayers().values() 
+                if isinstance(l, QgsRasterLayer)
+            ]
+
         return [l.name() for l in layers]
 
-    def _get_layer_by_name(self, name, layer_type='vector'):
+    def _get_layer_by_name(
+        self, 
+        name: str, 
+        layer_type: str ='vector'
+    ) -> str:
         if layer_type == 'vector':
             layers = QgsProject.instance().mapLayersByName(name)
         else:
-            layers = [l for l in QgsProject.instance().mapLayers().values() if isinstance(l, QgsRasterLayer) and l.name() == name]
+            layers = [
+                l for l in QgsProject.instance().mapLayers().values() 
+                if isinstance(l, QgsRasterLayer) and l.name() == name
+            ]
+        
         return layers[0] if layers else None
 
     # ------------------------------------------------------------------
@@ -168,12 +198,29 @@ class PluginDialog(QtWidgets.QDialog):
         hvec2.addWidget(self.filter_refresh)
         layout.addRow('Input vector layer:', hvec2)
 
-        self.area_min = QtWidgets.QDoubleSpinBox(); self.area_min.setDecimals(3); self.area_min.setRange(-1e9, 1e9)
-        self.area_max = QtWidgets.QDoubleSpinBox(); self.area_max.setDecimals(3); self.area_max.setRange(-1e9, 1e9)
-        self.ratio_min = QtWidgets.QDoubleSpinBox(); self.ratio_min.setDecimals(3); self.ratio_min.setRange(-1e9, 1e9)
-        self.ratio_max = QtWidgets.QDoubleSpinBox(); self.ratio_max.setDecimals(3); self.ratio_max.setRange(-1e9, 1e9)
-        self.raster_stat_min = QtWidgets.QDoubleSpinBox(); self.raster_stat_min.setDecimals(4); self.raster_stat_min.setRange(-1e9, 1e9)
-        self.raster_stat_max = QtWidgets.QDoubleSpinBox(); self.raster_stat_max.setDecimals(4); self.raster_stat_max.setRange(-1e9, 1e9)
+        self.area_min = QtWidgets.QDoubleSpinBox()
+        self.area_min.setDecimals(3)
+        self.area_min.setRange(-1e9, 1e9)
+        
+        self.area_max = QtWidgets.QDoubleSpinBox()
+        self.area_max.setDecimals(3)
+        self.area_max.setRange(-1e9, 1e9)
+        
+        self.ratio_min = QtWidgets.QDoubleSpinBox()
+        self.ratio_min.setDecimals(3)
+        self.ratio_min.setRange(-1e9, 1e9)
+        
+        self.ratio_max = QtWidgets.QDoubleSpinBox()
+        self.ratio_max.setDecimals(3)
+        self.ratio_max.setRange(-1e9, 1e9)
+        
+        self.raster_stat_min = QtWidgets.QDoubleSpinBox()
+        self.raster_stat_min.setDecimals(4)
+        self.raster_stat_min.setRange(-1e9, 1e9)
+        
+        self.raster_stat_max = QtWidgets.QDoubleSpinBox()
+        self.raster_stat_max.setDecimals(4)
+        self.raster_stat_max.setRange(-1e9, 1e9)
 
         layout.addRow('Area (min):', self.area_min)
         layout.addRow('Area (max):', self.area_max)
@@ -217,7 +264,10 @@ class PluginDialog(QtWidgets.QDialog):
         vlayer = self._get_layer_by_name(vec_name, 'vector')
         rlayer = self._get_layer_by_name(rast_name, 'raster')
         if not vlayer or not rlayer:
-            QtWidgets.QMessageBox.warning(self, 'Missing layer', 'Please select both vector and raster layers.')
+            QtWidgets.QMessageBox.warning(
+                self, 'Missing layer', 'Please select both vector and raster layers.'
+            )
+            
             return
 
         band = self.band_spin.value()
@@ -237,11 +287,24 @@ class PluginDialog(QtWidgets.QDialog):
         vlayer_stat.updateFields()
         vlayer_stat.startEditing()
 
-        expr_length = QgsExpression('if(num_points($geometry)=5,array_max(array(distance(point_n($geometry,1),point_n($geometry,2)),distance(point_n($geometry,2),point_n($geometry,3)))),0)')
-        expr_width = QgsExpression('if(num_points($geometry)=5,array_min(array(distance(point_n($geometry,1),point_n($geometry,2)),distance(point_n($geometry,2),point_n($geometry,3)))),0)')
+        expr_length = QgsExpression(
+            'if(num_points($geometry)=5,'
+            'array_max(array(distance(point_n($geometry,1),'
+            'point_n($geometry,2)),'
+            'distance(point_n($geometry,2),point_n($geometry,3)))),0)'
+        )
+        expr_width = QgsExpression(
+            'if(num_points($geometry)=5,'
+            'array_min(array(distance(point_n($geometry,1),'
+            'point_n($geometry,2)),'
+            'distance(point_n($geometry,2),point_n($geometry,3)))),0)'
+        )
         context = QgsExpressionContext()
         context.appendScopes(QgsExpressionContextUtils.globalProjectLayerScopes(vlayer_stat))
-        idxs = {f: vlayer_stat.fields().indexOf(f) for f in ['Length', 'Width', 'Area', 'Ratio']}
+        idxs = {
+            f: vlayer_stat.fields().indexOf(f) 
+            for f in ['Length', 'Width', 'Area', 'Ratio']
+        }
 
         for feat in vlayer_stat.getFeatures():
             context.setFeature(feat)
@@ -257,7 +320,11 @@ class PluginDialog(QtWidgets.QDialog):
         vlayer_stat.commitChanges()
 
         # Clean up old zonal stats fields from any previous run
-        fields_to_remove = [f.name() for f in vlayer_stat.fields() if f.name().startswith('raster_') or f.name().startswith('zs_')]
+        fields_to_remove = [
+            f.name() for f in vlayer_stat.fields() 
+            if f.name().startswith('raster_') or f.name().startswith('zs_')
+        ]
+
         if fields_to_remove:
             vlayer_stat.startEditing()
             for fn in fields_to_remove:
@@ -287,21 +354,25 @@ class PluginDialog(QtWidgets.QDialog):
 
         if len(new_fields) == 1:
             self.raster_stat_field = new_fields[0]
+        
         elif new_fields:
             # Unexpected but not fatal: fall back to the first new field.
             self.raster_stat_field = sorted(new_fields)[0]
+        
         else:
             QtWidgets.QMessageBox.warning(
                 self, 'Zonal statistics',
                 'Zonal statistics did not add a new field - filtering on the raster '
                 'statistic will not be available until this succeeds.'
             )
+            
             self.raster_stat_field = None
 
         # Reflect the actual field name in Tab 2's labels
         if self.raster_stat_field:
             label = f'Raster {stat_name} [{self.raster_stat_field}] (band {band}) (min):'
             label_max = f'Raster {stat_name} [{self.raster_stat_field}] (band {band}) (max):'
+            
             self.raster_stat_label_min.setText(label)
             self.raster_stat_label_max.setText(label_max)
 
@@ -312,26 +383,60 @@ class PluginDialog(QtWidgets.QDialog):
             field_names.append(self.raster_stat_field)
         for f in field_names:
             if vlayer_stat.fields().indexOf(f) != -1:
-                vals = [feat[f] for feat in vlayer_stat.getFeatures() if isinstance(feat[f], (int, float))]
+                vals = [
+                    feat[f] for feat in vlayer_stat.getFeatures() 
+                    if isinstance(feat[f], (int, float))
+                ]
+                
                 if vals:
-                    stats[f] = {'min': min(vals), 'max': max(vals), 'mean': statistics.mean(vals), 'stdev': statistics.pstdev(vals)}
+                    stats[f] = {
+                        'min': min(vals), 
+                        'max': max(vals), 
+                        'mean': statistics.mean(vals), 
+                        'stdev': statistics.pstdev(vals)
+                    }
+
         self.latest_stats = stats
 
         # Show popup
         msg = ''
+        
         for k, v in stats.items():
-            msg += f"{k} - Min: {v['min']:.4f}, Max: {v['max']:.4f}, Mean: {v['mean']:.4f}, StdDev: {v['stdev']:.4f}\n"
+            msg += (
+                f"{k} - Min: {v['min']:.4f}, "
+                f"Max: {v['max']:.4f}, "
+                f"Mean: {v['mean']:.4f}, "
+                f"StdDev: {v['stdev']:.4f}\n"
+            )
+        
         QtWidgets.QMessageBox.information(self, 'Statistics', msg)
 
     def _save_report(self):
         if not self.latest_stats:
-            QtWidgets.QMessageBox.warning(self, 'No stats', 'Run Tab1 first to generate statistics.')
+            QtWidgets.QMessageBox.warning(
+                self, 
+                'No stats', 
+                'Run Tab1 first to generate statistics.'
+            )
+
             return
-        path, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Report as TXT', '', 'Text Files (*.txt)')
+
+        path, _ = QtWidgets.QFileDialog.getSaveFileName(
+            self, 
+            'Save Report as TXT', '', 
+            'Text Files (*.txt)'
+        )
+
         if path:
             with open(path, 'w') as f:
                 for k, v in self.latest_stats.items():
-                    f.write(f"{k} - Min: {v['min']:.4f}, Max: {v['max']:.4f}, Mean: {v['mean']:.4f}, StdDev: {v['stdev']:.4f}\n")
+                    f.write(
+                        f"{k} - Min: {v['min']:.4f}, "
+                        f"Max: {v['max']:.4f}, "
+                        f"Mean: {v['mean']:.4f}, "
+                        f"StdDev: {v['stdev']:.4f}\n"
+                    )
+
             QtWidgets.QMessageBox.information(self, 'Saved', f'Report saved to {path}')
 
     def _use_defaults(self):
@@ -380,4 +485,8 @@ class PluginDialog(QtWidgets.QDialog):
         selected_layer = vlayer.materialize(req)
         selected_layer.setName(f"{vlayer.name()}_filtered")
         QgsProject.instance().addMapLayer(selected_layer)
-        QtWidgets.QMessageBox.information(self, 'Done', f'Added filtered layer "{selected_layer.name()}" with {count} features.')
+        QtWidgets.QMessageBox.information(
+            self, 
+            'Done', 
+            f'Added filtered layer "{selected_layer.name()}" with {count} features.'
+        )
